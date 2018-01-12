@@ -19,10 +19,14 @@ add_custom_target(dist
 find_package(PkgConfig)
 
 
-pkg_check_modules(POPPLER REQUIRED poppler>=0.25.0)
+pkg_check_modules(POPPLER REQUIRED poppler>=0.60.0)
 include_directories(${POPPLER_INCLUDE_DIRS})
 link_directories(${POPPLER_LIBRARY_DIRS})
 set(PDF2HTMLEX_LIBS ${PDF2HTMLEX_LIBS} ${POPPLER_LIBRARIES})
+
+if(NOT POPPLER_FOUND)
+    message(FATAL_ERROR "Error: Poppler libraries not found")
+endif()
 
 if(ENABLE_SVG)
     pkg_check_modules(CAIRO REQUIRED cairo>=1.10.0)

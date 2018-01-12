@@ -18,12 +18,12 @@ import sys
 import re
 import time
 
-package='pdf2htmlex'
-ppa_name='ppa:coolwanglu/pdf2htmlex'
-supported_distributions=('precise', 'trusty')
-dist_pattern=re.compile('|'.join(['\\) '+i for i in supported_distributions]))
-archive_cmd='(rm CMakeCache.txt || true) && cmake . && make dist'
-archive_suffix='.tar.bz2'
+package = 'pdf2htmlex'
+ppa_name = 'ppa:coolwanglu/pdf2htmlex'
+supported_distributions = ('trusty', 'xenial')
+dist_pattern = re.compile('|'.join(['\\) '+i for i in supported_distributions]))
+archive_cmd = '(rm CMakeCache.txt || true) && cmake . && make dist'
+archive_suffix = '.tar.bz2'
 
 print 'Generating version...'
 try:
@@ -38,13 +38,15 @@ except:
     print 'Cannot get revision number'
     sys.exit(-1)
 
-projectdir=os.getcwd()
+projectdir = os.getcwd()
 today_timestr = time.strftime('%Y%m%d%H%M')
 deb_version = version+'-1~git'+today_timestr+'r'+rev
 full_deb_version = deb_version+'-0ubuntu1'
 
-#check if we need to update debian/changelog
-with open('debian/changelog') as f:
+# check if we need to update debian/changelog
+if not os.path.exists('debian'):
+    os.makedirs('debian')
+with open('debian/changelog', 'a+') as f:
     if re.findall(r'\(([^)]+)\)', f.readline())[0] == full_deb_version:
         print
         print 'No need to update debian/changelog, skipping'
@@ -57,7 +59,7 @@ with open('debian/changelog') as f:
 
 # changelog may have been updated, reopen it
 with open('debian/changelog') as f:
-    #check dist mark of changelog
+    # check dist mark of changelog
     changelog = f.read()
     m = dist_pattern.search(changelog)
     if m is None or m.pos >= changelog.find('\n'):
@@ -72,16 +74,18 @@ if os.system(archive_cmd) != 0:
     sys.exit(-1)
 
 orig_tar_filename = package+'-'+version+archive_suffix
-if os.system('test -e %s && cp %s ../build-area/' % (orig_tar_filename, orig_tar_filename)) != 0:
+if not os.path.exists('build-area'):
+    os.makedirs('build-area')
+if os.system('test -e %s && cp %s build-area/' % (orig_tar_filename, orig_tar_filename)) != 0:
     print 'Cannot copy tarball file to build area'
     sys.exit(-1)
 
 deb_orig_tar_filename = package+'_'+deb_version+'.orig'+archive_suffix
 
 try:
-    os.chdir('../build-area')
+    os.chdir('build-area')
 except:
-    print 'Cannot find ../build-area'
+    print 'Cannot find build-area'
     sys.exit(-1)
 
 # remove old dir
@@ -102,16 +106,17 @@ os.system('cp -r %s/debian .' % (projectdir,))
 for cur_dist in supported_distributions:
     print
     print 'Building for ' + cur_dist + ' ...'
-    # substitute distribution name 
+    # substitute distribution name
     with open('debian/changelog', 'w') as f:
         f.write(dist_pattern.sub('~%s1) %s' % (cur_dist, cur_dist), changelog, 1))
 
     # building
-    if os.system('debuild -S -sa') != 0:
+    # -i -us -uc -b
+    # if os.system('debuild -S -sa') != 0:
+    if os.system('debuild -i -us -uc -b') != 0:
         print 'Failed in debuild'
         sys.exit(-1)
 
-    """
     print
     sys.stdout.write('Everything seems to be good so far, upload?(y/n)')
     sys.stdout.flush()
@@ -123,15 +128,11 @@ for cur_dist in supported_distributions:
     if ans == 'n':
         print 'Skipped.'
         sys.exit(0)
-    """
 
-    print 'Uploading'   
+    print 'Uploading'
     if os.system('dput %s ../%s' % (ppa_name, package+'_'+full_deb_version+'~'+cur_dist+'1_source.changes')) != 0:
         print 'Failed in uploading by dput'
         sys.exit(-1)
 
 print 'Build area not cleaned.'
 print 'All done. Cool!'
-
-
-
