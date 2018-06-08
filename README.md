@@ -2,6 +2,12 @@ pdf2htmlEX is no longer under active development. New maintainers are [wanted](h
 
 #![](http://coolwanglu.github.io/pdf2htmlEX/images/pdf2htmlEX-64x64.png) pdf2htmlEX 
 
+# Some notes
+
+Currently this fork requires `-fpermissive` flag to be passed to g++ compiler.
+
+# Rockstar04 README.md follows...
+
 # My branch differences:
 
 This is my branch of pdf2htmlEX which I maintain for my own purposes. I have made a number of changes and improvements over the original code:
