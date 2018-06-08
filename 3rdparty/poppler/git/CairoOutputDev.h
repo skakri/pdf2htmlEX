@@ -191,13 +191,13 @@ public:
   void eoClip(GfxState *state) override;
 
   //----- text drawing
-  void beginString(GfxState *state, GooString *s) override;
+  void beginString(GfxState *state, GooString *s);
   void endString(GfxState *state) override;
   void drawChar(GfxState *state, double x, double y,
 		double dx, double dy,
 		double originX, double originY,
 		CharCode code, int nBytes, Unicode *u, int uLen) override;
-  void beginActualText(GfxState *state, GooString *text) override;
+  void beginActualText(GfxState *state, GooString *text);
   void endActualText(GfxState *state) override;
 
   GBool beginType3Char(GfxState *state, double x, double y,
